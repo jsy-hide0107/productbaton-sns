@@ -19,3 +19,9 @@
 - 쉼: 기본 0.16초, 전환점 앞 0.42, 결말 앞 0.48 (toss2.py GAPS)
 - BGM: volume 1.5, sidechain ratio 1.3 (보이스보다 약 5LU 작게)
 - 결과: 68초 → 57초, videos/2026-11/ep02_toss_v3.mp4
+
+## 11/28 4편 피클 (ep04_pickle.mp4, 80초)
+- 대본: wip/pickle_script.py (위기→전망 구성, 수영 희망 멘트 포함). 렌더러 wip/ep_pickle.py (주의: 파일명을 pickle.py로 하면 파이썬 표준 pickle과 충돌)
+- 실제 앱 화면: iTunes lookup API(id 6795790129)로 아이콘·스크린샷을 받아 flow_pickle/r_*.jpg로 합성(평면 depth). 나머지는 Flow 이미지(0크레딧)
+- TTS: 한 프로세스에서 두 번째 generate가 멈춤 → 반드시 문장당 프로세스 하나(for i in ...; python3 gen_x.py $i). 백그라운드 nohup은 컨테이너 재시작으로 죽음 → 포그라운드로 나눠 실행
+- Flow 다운로드: 페이지 fetch 후킹으로 flow-content.google/image blob 수집 → .bin으로 묶어 1회 다운로드
