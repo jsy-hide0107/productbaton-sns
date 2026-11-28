@@ -270,7 +270,7 @@ def mix(P):
     sf.write(f"{OUT}/voice.wav", voice[:N], SR); sf.write(f"{OUT}/fx.wav", fxb[:N], SR); sf.write(f"{OUT}/music.wav", m[:N], SR)
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", f"{OUT}/voice.wav", "-i", f"{OUT}/music.wav", "-i", f"{OUT}/fx.wav", "-filter_complex",
         "[0:a]highpass=f=70,acompressor=threshold=0.1:ratio=3:attack=5:release=80,loudnorm=I=-15:TP=-1.5:LRA=6,aformat=channel_layouts=stereo,asplit=2[v][sc];"
-        "[1:a]volume=1.3,aformat=channel_layouts=stereo[m];[m][sc]sidechaincompress=threshold=0.1:ratio=1.3:attack=40:release=400[md];"
+        "[1:a]volume=" + os.environ.get("MVOL", "1.3") + ",aformat=channel_layouts=stereo[m];[m][sc]sidechaincompress=threshold=0.1:ratio=1.3:attack=40:release=400[md];"
         "[2:a]volume=0.9,aformat=channel_layouts=stereo[f];"
         "[v][md][f]amix=inputs=3:duration=first:normalize=0,alimiter=limit=0.95[o]", "-map", "[o]", "-ar", str(SR), f"{OUT}/mix.wav"], check=True)
 
