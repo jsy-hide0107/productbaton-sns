@@ -25,3 +25,7 @@
 - 실제 앱 화면: iTunes lookup API(id 6795790129)로 아이콘·스크린샷을 받아 flow_pickle/r_*.jpg로 합성(평면 depth). 나머지는 Flow 이미지(0크레딧)
 - TTS: 한 프로세스에서 두 번째 generate가 멈춤 → 반드시 문장당 프로세스 하나(for i in ...; python3 gen_x.py $i). 백그라운드 nohup은 컨테이너 재시작으로 죽음 → 포그라운드로 나눠 실행
 - Flow 다운로드: 페이지 fetch 후킹으로 flow-content.google/image blob 수집 → .bin으로 묶어 1회 다운로드
+
+## 11/29 피클 v2
+- 자막을 나레이션과 글자 그대로 일치시킴(요약형 자막 금지 → 앞으로 기본 규칙)
+- BGM: sfx.lofi_drive (92BPM 마이너, 킥 싱코페이션·스네어·16분 하이햇·펌핑), volume 1.3

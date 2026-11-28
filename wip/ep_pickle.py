@@ -238,19 +238,19 @@ def mix(P):
              ("warning_0", 0.15, 0.0, 1.0, cap_at(P, "카카오톡 기능을")),
              ("coin_1", 0.22, 0.0, None, cap_at(P, "월 매출 8천만")),
              ("notif_1", 0.24, 0.0, None, cap_at(P, "스레드에서 초대권")),
-             ("typing_0", 0.14, 0.5, 2.0, cap_at(P, "KTX 표 예매")),
+             ("typing_0", 0.14, 0.5, 2.0, cap_at(P, "KTX 표를 끊고")),
              ("error_0", 0.18, 0.0, None, cap_at(P, "허락한 적 없는"))]
     for name, vol, stt, dd, at in extra:
         if at is None: continue
         a = lib(name, vol, stt, dd); i = max(0, int(at * SR)); fxb[i:i + len(a)] += a[: len(fxb) - i]
     for k, at in P["ev"]:
         s = gen[k](); i = max(0, int(at * SR)); fxb[i:i + len(s)] += s[: len(fxb) - i]
-    m = sfx.lofi(total)
+    m = sfx.lofi_drive(total)
     fade = int(1.2 * SR); m[-fade:] *= np.linspace(1, 0, fade)
     sf.write(f"{OUT}/voice.wav", voice[:N], SR); sf.write(f"{OUT}/fx.wav", fxb[:N], SR); sf.write(f"{OUT}/music.wav", m[:N], SR)
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", f"{OUT}/voice.wav", "-i", f"{OUT}/music.wav", "-i", f"{OUT}/fx.wav", "-filter_complex",
         "[0:a]highpass=f=70,acompressor=threshold=0.1:ratio=3:attack=5:release=80,loudnorm=I=-15:TP=-1.5:LRA=6,aformat=channel_layouts=stereo,asplit=2[v][sc];"
-        "[1:a]volume=1.5,aformat=channel_layouts=stereo[m];[m][sc]sidechaincompress=threshold=0.1:ratio=1.3:attack=40:release=400[md];"
+        "[1:a]volume=1.3,aformat=channel_layouts=stereo[m];[m][sc]sidechaincompress=threshold=0.1:ratio=1.3:attack=40:release=400[md];"
         "[2:a]volume=0.9,aformat=channel_layouts=stereo[f];"
         "[v][md][f]amix=inputs=3:duration=first:normalize=0,alimiter=limit=0.95[o]", "-map", "[o]", "-ar", str(SR), f"{OUT}/mix.wav"], check=True)
 
