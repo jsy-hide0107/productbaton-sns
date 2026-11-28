@@ -1,3 +1,4 @@
+import os
 """토스 편 — 빠른 컷(자막 조각마다 새 비트), 펀치줌·슬램 숫자·흔들림, 강조 자막, 효과음·BGM."""
 import sys, os, json, re, subprocess
 import numpy as np, cv2, soundfile as sf
@@ -234,18 +235,37 @@ def mix(P):
     gen = {"whoosh": lambda: lib("whoosh_1", 0.28), "tick": lambda: lib("click_0", 0.18), "pop": lambda: lib("softpop_1", 0.16),
            "impact": lambda: lib("softpop_0", 0.42), "riser": lambda: sfx.riser(1.25, 0.28), "ding": lambda: lib("notif_0", 0.32)}
     # 장면 맞춤 효과음 (Pixabay 무료 라이선스)
-    extra = [("success_0", 0.20, 0.0, 1.6, cap_at(P, "한국 AI 비서")),
-             ("warning_0", 0.15, 0.0, 1.0, cap_at(P, "카카오톡 기능을")),
+    extra = [("success_0", 0.20, 0.0, 1.6, cap_at(P, "피클이라는 한국 AI")),
+             ("warning_0", 0.16, 0.0, 1.0, cap_at(P, "하루 만에 꺼야")),
+             ("softpop_2", 0.16, 0.0, None, cap_at(P, "박채근 대표예요")),
+             ("click_0", 0.16, 0.0, None, cap_at(P, "의대생 땐")),
+             ("softpop_2", 0.14, 0.0, None, cap_at(P, "침대에 누워 있어도")),
              ("coin_1", 0.22, 0.0, None, cap_at(P, "월 매출 8천만")),
              ("notif_1", 0.24, 0.0, None, cap_at(P, "스레드에서 초대권")),
-             ("typing_0", 0.14, 0.5, 2.0, cap_at(P, "KTX 표를 끊고")),
-             ("error_0", 0.18, 0.0, None, cap_at(P, "허락한 적 없는"))]
+             ("typing_0", 0.14, 0.5, 1.6, cap_at(P, "KTX 표를 끊고")),
+             ("notif_0", 0.18, 0.0, None, cap_at(P, "식당에 전화까지")),
+             ("success_0", 0.18, 0.0, 1.4, cap_at(P, "생산성 1위에 올랐어요")),
+             ("typing_1", 0.14, 0.3, 1.4, cap_at(P, "내 아이디랑")),
+             ("error_0", 0.18, 0.0, None, cap_at(P, "허락한 적 없는")),
+             ("error_1", 0.12, 0.0, None, cap_at(P, "약관을 바꿨어요")),
+             ("whoosh_0", 0.18, 0.0, None, cap_at(P, "그래서 지금 질문은")),
+             ("paper_1", 0.18, 0.0, None, cap_at(P, "네이버는 공식 제휴")),
+             ("whoosh_2", 0.18, 0.0, None, cap_at(P, "이 문이 공식적으로")),
+             ("softpop_2", 0.16, 0.0, None, cap_at(P, "두드리고 있어요"))]
     for name, vol, stt, dd, at in extra:
         if at is None: continue
         a = lib(name, vol, stt, dd); i = max(0, int(at * SR)); fxb[i:i + len(a)] += a[: len(fxb) - i]
     for k, at in P["ev"]:
         s = gen[k](); i = max(0, int(at * SR)); fxb[i:i + len(s)] += s[: len(fxb) - i]
-    m = sfx.lofi_drive(total)
+    BGM = os.environ.get("BGM")
+    if os.environ.get("NOBGM"):
+        m = np.zeros(N)
+    elif BGM:
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-stream_loop", "-1", "-i", BGM, "-t", str(total), "-ar", str(SR), "-ac", "1", "/tmp/bgm.wav"], check=True)
+        m, _ = sf.read("/tmp/bgm.wav"); m = np.pad(m, (0, max(0, N - len(m))))
+        f0 = int(0.6 * SR); m[:f0] *= np.linspace(0, 1, f0)
+    else:
+        m = sfx.lofi_drive(total)
     fade = int(1.2 * SR); m[-fade:] *= np.linspace(1, 0, fade)
     sf.write(f"{OUT}/voice.wav", voice[:N], SR); sf.write(f"{OUT}/fx.wav", fxb[:N], SR); sf.write(f"{OUT}/music.wav", m[:N], SR)
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", f"{OUT}/voice.wav", "-i", f"{OUT}/music.wav", "-i", f"{OUT}/fx.wav", "-filter_complex",
