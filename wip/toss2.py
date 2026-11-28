@@ -10,10 +10,12 @@ for _L in LINES:
 import sfx
 
 SRC = "/home/claude/pb/video/flow_toss"
-VO = "/home/claude/tts/out_toss2/fast"
+VO = "/home/claude/tts/out_toss2/fast4"
 OUT = "/home/claude/pb/video/out/toss2"
 os.makedirs(OUT, exist_ok=True)
-LEAD, GAP, TAIL = 0.05, 0.24, 0.9
+LEAD, GAP, TAIL = 0.05, 0.16, 0.9
+# 문장 뒤 쉼: 전환점·결말 앞은 길게, 실패 몽타주는 짧게
+GAPS = {1: 0.22, 16: 0.18, 4: 0.12, 5: 0.42, 6: 0.2, 8: 0.12, 12: 0.18, 13: 0.48, 14: 0.4}
 
 def norm(s): return re.sub(r"[^가-힣0-9a-zA-Z]", "", s)
 def weight(s): return sum(1.6 if c.isdigit() else 1.0 for c in norm(s.replace("[", "").replace("]", "")))
@@ -41,8 +43,8 @@ def build():
     for L in LINES:
         p = f"{VO}/line{L['id']:02d}.wav"; d = sf.info(p).duration
         ct = chunk_times(p, L["caps"]) if L["caps"] else [0.0]
-        lines.append((L, t, d, ct, p)); t += d + GAP
-    total = t - GAP + TAIL
+        lines.append((L, t, d, ct, p)); t += d + GAPS.get(L['id'], GAP)
+    total = t - GAPS.get(LINES[-1]['id'], GAP) + TAIL
     for k, (L, st, d, ct, p) in enumerate(lines):
         nxt = lines[k + 1][1] if k + 1 < len(lines) else total
         for j, img in enumerate(L["img"]):
@@ -248,7 +250,7 @@ def mix(P):
     sf.write(f"{OUT}/voice.wav", voice[:N], SR); sf.write(f"{OUT}/fx.wav", fxb[:N], SR); sf.write(f"{OUT}/music.wav", m[:N], SR)
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", f"{OUT}/voice.wav", "-i", f"{OUT}/music.wav", "-i", f"{OUT}/fx.wav", "-filter_complex",
         "[0:a]highpass=f=70,acompressor=threshold=0.1:ratio=3:attack=5:release=80,loudnorm=I=-15:TP=-1.5:LRA=6,aformat=channel_layouts=stereo,asplit=2[v][sc];"
-        "[1:a]volume=0.9,aformat=channel_layouts=stereo[m];[m][sc]sidechaincompress=threshold=0.08:ratio=1.6:attack=25:release=300[md];"
+        "[1:a]volume=1.5,aformat=channel_layouts=stereo[m];[m][sc]sidechaincompress=threshold=0.1:ratio=1.3:attack=40:release=400[md];"
         "[2:a]volume=0.9,aformat=channel_layouts=stereo[f];"
         "[v][md][f]amix=inputs=3:duration=first:normalize=0,alimiter=limit=0.95[o]", "-map", "[o]", "-ar", str(SR), f"{OUT}/mix.wav"], check=True)
 
